@@ -1,23 +1,5 @@
 import MeetupList from "../components/meetups/MeetupList";
-
-const DUMMY_MEETUPS = [
-  {
-    id: "m1",
-    title: "A first Meetup",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Mcgraw-hill-42nd-st_1.jpg/800px-Mcgraw-hill-42nd-st_1.jpg",
-    address: "1234 address, address",
-    description: "first meetup",
-  },
-  {
-    id: "m2",
-    title: "A second Meetup",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Mcgraw-hill-42nd-st_1.jpg/800px-Mcgraw-hill-42nd-st_1.jpg",
-    address: "1234 address, address",
-    description: "second meetup",
-  },
-];
+import { MongoClient } from "mongodb";
 
 function HomePage(props) {
   return <MeetupList meetups={props.meetups} />;
@@ -39,11 +21,26 @@ function HomePage(props) {
 // GETSTATICPROPS
 
 export async function getStaticProps() {
+  const client = await MongoClient.connect(
+    "mongodb+srv://QT:FgDFy3HnngRZvYad@cluster0.hxunn.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+  );
+  const db = client.db();
+
+  const meetupsCollection = db.collection("meetups");
+
+  const meetups = await meetupsCollection.find().toArray();
+
+  client.close();
   return {
     props: {
-      meetups: DUMMY_MEETUPS,
+      meetups: meetups.map((meetup) => ({
+        title: meetup.title,
+        address: meetup.address,
+        image: meetup.image,
+        id: meetup._id.toString(),
+      })),
     },
-    revalidate: 1
+    revalidate: 1,
   };
 }
 
